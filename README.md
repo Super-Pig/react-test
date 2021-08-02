@@ -20,6 +20,8 @@
 
   - [双缓存技术](#双缓存技术)
 
+  - [区分 fiberRoot 与 rootFiber](#区分fiberRoot与rootFiber)
+
 # 搭建React源码本地调试环境
 
 1. 使用 create-react-app 脚手架创建项目
@@ -304,3 +306,17 @@ React 使用双缓存技术完成 Fiber 树的构建与替换，实现 DOM 对�
 一旦 workInProgress Fiber 树在屏幕上呈现，它就会变成 current Fiber 树
 
 在 current Fiber 节点对象中又一个 alternate 属性指向对应的 workInProgress Fiber 节点对象，在 workInProgress Fiber 节点中有一个 alternate 属性也指向对应的 current Fiber 节点对象
+
+## 区分fiberRoot与rootFiber
+
+fiberRoot 表示 Fiber 数据结构对象，是 Fiber 数据结构中的最外层对象
+
+rootFiber 表示组件挂载点对应的 Fiber 对象，比如 React 应用中默认的组件挂载点是 id 为 root 的 div
+
+fiberRoot 包含 rootFiber, 在 fiberRoot 对象中又一个 current 属性，存储 rootFiber
+
+rootFiber 指向 fiberRoot, 在 rootFiber 对象中有一个 stateNode 属性，指向 fiberRoot
+
+在 React 应用中 fiberRoot 只有一个，而 rootFiber 可以有多个，因为 render 方法是可以调用多次的 
+
+fiberRoot 会记录饮用中的更新信息，比如协调器在完成工作后，会将工作成果存储在 fiberRoot 中
