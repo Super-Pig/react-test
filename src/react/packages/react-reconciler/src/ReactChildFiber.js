@@ -773,6 +773,14 @@ function ChildReconciler(shouldTrackSideEffects) {
     return knownKeys;
   }
 
+  /**
+   * 处理子元素是数组的情况
+   * @param {*} returnFiber 父级 Fiber
+   * @param {*} currentFirstChild 
+   * @param {*} newChildren 自己 vdom 数组
+   * @param {*} expirationTime 
+   * @returns 
+   */
   function reconcileChildrenArray(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -807,10 +815,19 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
     }
 
+    /**
+     * 存储第一个子节点 Fiber 对象
+     * 方法返回的也是第一个子节点 Fiber 对象
+     * 因为其他子节点 Fiber 对象都存储在上一个子 Fiber 对象的 sibling 属性中
+     */
     let resultingFirstChild: Fiber | null = null;
+
+    // 上一次创建的 Fiber 对象
     let previousNewFiber: Fiber | null = null;
 
+    // 初始渲染没有旧的子级，所以为 null
     let oldFiber = currentFirstChild;
+
     let lastPlacedIndex = 0;
     let newIdx = 0;
     let nextOldFiber = null;
@@ -865,6 +882,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       return resultingFirstChild;
     }
 
+    // oldFiber 为空，说明是初始渲染
     if (oldFiber === null) {
       // If we don't have any more existing children we can choose a fast path
       // since the rest will all be insertions.
@@ -877,7 +895,14 @@ function ChildReconciler(shouldTrackSideEffects) {
         if (newFiber === null) {
           continue;
         }
+
+        /**
+         * 初始渲染时只为 newFiber 添加了 index 属性
+         * 其他事没干
+         * lastPlacedIndex 被原封不动的返回了
+         */
         lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
+       
         if (previousNewFiber === null) {
           // TODO: Move out of the loop. This only happens for the first run.
           resultingFirstChild = newFiber;
@@ -1151,6 +1176,14 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created;
   }
 
+  /**
+   * 
+   * @param {*} returnFiber 
+   * @param {*} currentFirstChild 
+   * @param {*} element 
+   * @param {*} expirationTime 
+   * @returns 
+   */
   function reconcileSingleElement(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1236,13 +1269,27 @@ function ChildReconciler(shouldTrackSideEffects) {
       created.return = returnFiber;
       return created;
     } else {
+      // 根据 React Element 创建 Fiber 对象
+      // 返回创建好的 Fiber 对象
       const created = createFiberFromElement(
         element,
+        /**
+         * 用来表示当前组件下的所有子组件要用于何种渲染模式
+         * 文件位置：./ReactTypeOfMode.js
+         * 0    同步渲染模式
+         * 100  异步渲染模式
+         */
         returnFiber.mode,
         expirationTime,
       );
+
+      // 添加 ref 属性 { current: DOM }
       created.ref = coerceRef(returnFiber, currentFirstChild, element);
+
+      // 添加父级 Fiber 对象
       created.return = returnFiber;
+
+      // 返回创建的子 Fiber
       return created;
     }
   }
@@ -1290,6 +1337,14 @@ function ChildReconciler(shouldTrackSideEffects) {
   // This API will tag the children with the side-effect of the reconciliation
   // itself. They will be added to the side-effect list as we pass through the
   // children and the parent.
+  /**
+   * 
+   * @param {*} returnFiber 父 Fiber 对象
+   * @param {*} currentFirstChild 旧的第一个子 Fiber, 初始渲染 null
+   * @param {*} newChild 新的子 vdom 对象
+   * @param {*} expirationTime 初始渲染，整型最大值，代表同步任务
+   * @returns 
+   */
   function reconcileChildFibers(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1304,22 +1359,37 @@ function ChildReconciler(shouldTrackSideEffects) {
     // Handle top level unkeyed fragments as if they were arrays.
     // This leads to an ambiguity between <>{[...]}</> and <>...</>.
     // We treat the ambiguous cases above the same.
+    /**
+     * 判断新的子 vdom 是否为占位组件，比如 <></>
+     */
     const isUnkeyedTopLevelFragment =
       typeof newChild === 'object' &&
       newChild !== null &&
       newChild.type === REACT_FRAGMENT_TYPE &&
       newChild.key === null;
+    
+    // 如果 newChild 为占位符，使用占位符组件的子元素作为 newChild
     if (isUnkeyedTopLevelFragment) {
       newChild = newChild.props.children;
     }
 
     // Handle object types
+    // 检测子 newChild 是否为对象类型
     const isObject = typeof newChild === 'object' && newChild !== null;
 
+    // newChild 是单个对象的情况
     if (isObject) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
+          /**
+           * 为 Fiber 对象设置 effectTag 属性
+           * 返回创建好的子 Fiber
+           */
           return placeSingleChild(
+            /**
+             * 处理单个 React Element 的情况
+             * 内部会调用其他方法创建对应的 Fiber 对象
+             */
             reconcileSingleElement(
               returnFiber,
               currentFirstChild,
@@ -1350,6 +1420,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       );
     }
 
+    // newChild 是数组的情况
     if (isArray(newChild)) {
       return reconcileChildrenArray(
         returnFiber,
@@ -1414,7 +1485,14 @@ function ChildReconciler(shouldTrackSideEffects) {
   return reconcileChildFibers;
 }
 
+/**
+ * shouldTrackSideEffects 标识，是否为 Fiber 对象添加 effectTag
+ * true 添加；false 不添加
+ * 对于初始渲染来说，只有根组件需要添加，其他元素不需要添加，防止过多的 DOM 操作
+ */
+// 用于更新
 export const reconcileChildFibers = ChildReconciler(true);
+// 用于初始渲染
 export const mountChildFibers = ChildReconciler(false);
 
 export function cloneChildFibers(

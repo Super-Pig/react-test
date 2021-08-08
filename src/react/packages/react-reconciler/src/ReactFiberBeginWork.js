@@ -209,12 +209,25 @@ if (__DEV__) {
   didWarnAboutDefaultPropsOnFunctionComponent = {};
 }
 
+/**
+ * 构建子级 fiber 对象
+ * @param {*} current 旧 Fiber
+ * @param {*} workInProgress // 父级 Fiber
+ * @param {*} nextChildren // 子级 vdom 对象
+ * @param {*} renderExpirationTime 初始渲染，整型最大值，代表同步任务
+ */
 export function reconcileChildren(
   current: Fiber | null,
   workInProgress: Fiber,
   nextChildren: any,
   renderExpirationTime: ExpirationTime,
 ) {
+  /**
+   * 为什么要传递 current ?
+   * 如果不是初始渲染的情况，要进行新旧 Fiber 对比
+   * 初始渲染时则用不到 current 
+   */
+  // 如果 Fiber 为 null 表示初始渲染
   if (current === null) {
     // If this is a fresh new component that hasn't been rendered yet, we
     // won't update its child set by applying minimal side-effects. Instead,
@@ -984,24 +997,56 @@ function pushHostRootContext(workInProgress) {
   pushHostContainer(workInProgress, root.containerInfo);
 }
 
+/**
+ * 更新 hostRoot
+ * <div id='root'></div> 对应的 Fiber 对象
+ * @param {*} current 
+ * @param {*} workInProgress 
+ * @param {*} renderExpirationTime 
+ * @returns 
+ */
 function updateHostRoot(current, workInProgress, renderExpirationTime) {
   pushHostRootContext(workInProgress);
+
+  // 获取更新队列
   const updateQueue = workInProgress.updateQueue;
+
   invariant(
     current !== null && updateQueue !== null,
     'If the root does not have an updateQueue, we should have already ' +
       'bailed out. This error is likely caused by a bug in React. Please ' +
       'file an issue.',
   );
+
+  // 获取更新的 props 对象 null
   const nextProps = workInProgress.pendingProps;
+
+  // 获取上一次渲染使用的 state null
   const prevState = workInProgress.memoizedState;
+
+  // 获取上一次渲染使用的 children null
   const prevChildren = prevState !== null ? prevState.element : null;
+
+  // 浅复制更新队列，防止引用属性互相影响
+  // workInProgress.updateQueue 浅拷贝 current.updateQueue
   cloneUpdateQueue(current, workInProgress);
+
+  // 获取 updateQueue.payload 并赋值到 workInProgress.memorizedState
+  // 要更新的内容就是 element, 就是 rootFiber 的子元素
   processUpdateQueue(workInProgress, nextProps, null, renderExpirationTime);
+
+  // 获取 element 所在对象
   const nextState = workInProgress.memoizedState;
+
   // Caution: React DevTools currently depends on this property
   // being called "element".
+  // 从对象中获取 element
   const nextChildren = nextState.element;
+
+  // 在计算 state 后如果前后两个 Children 相同的情况
+  // prevChildren => null
+  // nextState => App
+  // false
   if (nextChildren === prevChildren) {
     // If the state is the same as before, that's a bailout because we had
     // no work that expires at this time.
@@ -1012,7 +1057,11 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
       renderExpirationTime,
     );
   }
+
+  // 获取 fiberRoot 对象
   const root: FiberRoot = workInProgress.stateNode;
+
+  // 服务端渲染走 if， 客户端渲染走 else
   if (root.hydrate && enterHydrationState(workInProgress)) {
     // If we don't have any current children this might be the first pass.
     // We always try to hydrate. If this isn't a hydration pass there won't
@@ -1041,6 +1090,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
   } else {
     // Otherwise reset hydration state in case we aborted and resumed another
     // root.
+    // 构建子节点 fiber 对象
     reconcileChildren(
       current,
       workInProgress,
@@ -2871,6 +2921,13 @@ function remountFiber(
   }
 }
 
+/**
+ * 从父到子，构建 fiber 对象
+ * @param {*} current 
+ * @param {*} workInProgress 
+ * @param {*} renderExpirationTime 
+ * @returns 
+ */
 function beginWork(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -3096,6 +3153,10 @@ function beginWork(
   // move this assignment out of the common path and into each branch.
   workInProgress.expirationTime = NoWork;
 
+  /**
+   * 根据当前 Fiber 的类型决定如何构建子级 Fiber 对象
+   * 文件位置： shared/ReactWorkTags.js
+   */
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
       return mountIndeterminateComponent(

@@ -7,18 +7,18 @@
  * @flow
  */
 
-import type {Fiber} from './ReactFiber';
-import type {FiberRoot} from './ReactFiberRoot';
-import type {RootTag} from 'shared/ReactRootTags';
+import type { Fiber } from './ReactFiber';
+import type { FiberRoot } from './ReactFiberRoot';
+import type { RootTag } from 'shared/ReactRootTags';
 import type {
   Instance,
   TextInstance,
   Container,
   PublicInstance,
 } from './ReactFiberHostConfig';
-import {FundamentalComponent} from 'shared/ReactWorkTags';
-import type {ReactNodeList} from 'shared/ReactTypes';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
+import { FundamentalComponent } from 'shared/ReactWorkTags';
+import type { ReactNodeList } from 'shared/ReactTypes';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
 import type {
   SuspenseHydrationCallbacks,
   SuspenseState,
@@ -28,7 +28,7 @@ import {
   findCurrentHostFiber,
   findCurrentHostFiberWithNoPortals,
 } from 'react-reconciler/reflection';
-import {get as getInstance} from 'shared/ReactInstanceMap';
+import { get as getInstance } from 'shared/ReactInstanceMap';
 import {
   HostComponent,
   ClassComponent,
@@ -39,15 +39,15 @@ import getComponentName from 'shared/getComponentName';
 import invariant from 'shared/invariant';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 
-import {getPublicInstance} from './ReactFiberHostConfig';
+import { getPublicInstance } from './ReactFiberHostConfig';
 import {
   findCurrentUnmaskedContext,
   processChildContext,
   emptyContextObject,
   isContextProvider as isLegacyContextProvider,
 } from './ReactFiberContext';
-import {createFiberRoot} from './ReactFiberRoot';
-import {injectInternals, onScheduleRoot} from './ReactFiberDevToolsHook';
+import { createFiberRoot } from './ReactFiberRoot';
+import { injectInternals, onScheduleRoot } from './ReactFiberDevToolsHook';
 import {
   requestCurrentTimeForUpdate,
   computeExpirationForFiber,
@@ -67,19 +67,19 @@ import {
   warnIfUnmockedScheduler,
   IsThisRendererActing,
 } from './ReactFiberWorkLoop';
-import {createUpdate, enqueueUpdate} from './ReactUpdateQueue';
+import { createUpdate, enqueueUpdate } from './ReactUpdateQueue';
 import {
   getStackByFiberInDevAndProd,
   isRendering as ReactCurrentFiberIsRendering,
   current as ReactCurrentFiberCurrent,
 } from './ReactCurrentFiber';
-import {StrictMode} from './ReactTypeOfMode';
+import { StrictMode } from './ReactTypeOfMode';
 import {
   Sync,
   ContinuousHydration,
   computeInteractiveExpiration,
 } from './ReactFiberExpirationTime';
-import {requestCurrentSuspenseConfig} from './ReactFiberSuspenseConfig';
+import { requestCurrentSuspenseConfig } from './ReactFiberSuspenseConfig';
 import {
   scheduleRefresh,
   scheduleRoot,
@@ -100,15 +100,15 @@ type BundleType = 0 | 1;
 
 type DevToolsConfig = {|
   bundleType: BundleType,
-  version: string,
-  rendererPackageName: string,
-  // Note: this actually *does* depend on Fiber internal fields.
-  // Used by "inspect clicked DOM element" in React DevTools.
-  findFiberByHostInstance?: (instance: Instance | TextInstance) => Fiber,
-  // Used by RN in-app inspector.
-  // This API is unfortunately RN-specific.
-  // TODO: Change it to accept Fiber instead and type it properly.
-  getInspectorDataForViewTag?: (tag: number) => Object,
+    version: string,
+      rendererPackageName: string,
+        // Note: this actually *does* depend on Fiber internal fields.
+        // Used by "inspect clicked DOM element" in React DevTools.
+        findFiberByHostInstance ?: (instance: Instance | TextInstance) => Fiber,
+        // Used by RN in-app inspector.
+        // This API is unfortunately RN-specific.
+        // TODO: Change it to accept Fiber instead and type it properly.
+        getInspectorDataForViewTag ?: (tag: number) => Object,
 |};
 
 let didWarnAboutNestedUpdates;
@@ -187,10 +187,10 @@ function findHostInstanceWithWarning(
         if (fiber.mode & StrictMode) {
           console.error(
             '%s is deprecated in StrictMode. ' +
-              '%s was passed an instance of %s which is inside StrictMode. ' +
-              'Instead, add a ref directly to the element you want to reference. ' +
-              'Learn more about using refs safely here: ' +
-              'https://fb.me/react-strict-mode-find-node%s',
+            '%s was passed an instance of %s which is inside StrictMode. ' +
+            'Instead, add a ref directly to the element you want to reference. ' +
+            'Learn more about using refs safely here: ' +
+            'https://fb.me/react-strict-mode-find-node%s',
             methodName,
             methodName,
             componentName,
@@ -199,10 +199,10 @@ function findHostInstanceWithWarning(
         } else {
           console.error(
             '%s is deprecated in StrictMode. ' +
-              '%s was passed an instance of %s which renders StrictMode children. ' +
-              'Instead, add a ref directly to the element you want to reference. ' +
-              'Learn more about using refs safely here: ' +
-              'https://fb.me/react-strict-mode-find-node%s',
+            '%s was passed an instance of %s which renders StrictMode children. ' +
+            'Instead, add a ref directly to the element you want to reference. ' +
+            'Learn more about using refs safely here: ' +
+            'https://fb.me/react-strict-mode-find-node%s',
             methodName,
             methodName,
             componentName,
@@ -222,9 +222,23 @@ export function createContainer(
   hydrate: boolean,
   hydrationCallbacks: null | SuspenseHydrationCallbacks,
 ): OpaqueRoot {
+  // containerInfo => <div id='root'></div>
+  // tag: 0
+  // hydrate: false
+  // hydrationCallbacks: null
   return createFiberRoot(containerInfo, tag, hydrate, hydrationCallbacks);
 }
 
+/**
+ * 计算任务的过期时间
+ * 再根据过期时间创建 Update 任务
+ * 通过任务的过期时间还可以计算出任务的优先级
+ * @param {*} element 要渲染的 ReactElement
+ * @param {*} container container FiberRoot 对象
+ * @param {*} parentComponent 父组件，初始渲染为 null
+ * @param {*} callback 渲染完成执行的回调函数
+ * @returns 
+ */
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
@@ -234,8 +248,13 @@ export function updateContainer(
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
+
+  // 获取 rootFiber
   const current = container.current;
+
+  // 获取当前距离 react 应用初始化的时间
   const currentTime = requestCurrentTimeForUpdate();
+ 
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
     if ('undefined' !== typeof jest) {
@@ -243,14 +262,29 @@ export function updateContainer(
       warnIfNotScopedWithMatchingAct(current);
     }
   }
+
+  // 异步加载设置
   const suspenseConfig = requestCurrentSuspenseConfig();
+
+  /**
+   * 计算过期时间
+   * 为防止任务因为优先级的原因一直被打断而未能执行
+   * react 会设置一个过期时间，当时间到了过期时间的时候
+   * 如果任务还未执行的话，react 会强制执行该任务
+   * 初始化渲染时，任务同步执行不涉及被打断的问题
+   * 此过期时间被设置成了 1073741823，这个数值表示当前任务为同步任务
+   */
   const expirationTime = computeExpirationForFiber(
     currentTime,
     current,
     suspenseConfig,
   );
 
+  // 设置 FiberRoot.context，首次执行返回一个 emptyContext，是一个 {}
   const context = getContextForSubtree(parentComponent);
+
+  // 初始渲染时 Fiber Root 对象中的 context 属性值为 null
+  // 所以会进入到 if 中
   if (container.context === null) {
     container.context = context;
   } else {
@@ -266,18 +300,22 @@ export function updateContainer(
       didWarnAboutNestedUpdates = true;
       console.error(
         'Render methods should be a pure function of props and state; ' +
-          'triggering nested component updates from render is not allowed. ' +
-          'If necessary, trigger nested updates in componentDidUpdate.\n\n' +
-          'Check the render method of %s.',
+        'triggering nested component updates from render is not allowed. ' +
+        'If necessary, trigger nested updates in componentDidUpdate.\n\n' +
+        'Check the render method of %s.',
         getComponentName(ReactCurrentFiberCurrent.type) || 'Unknown',
       );
     }
   }
 
+  // 创建一个待执行任务
   const update = createUpdate(expirationTime, suspenseConfig);
+
   // Caution: React DevTools currently depends on this property
   // being called "element".
-  update.payload = {element};
+  // 将要更新的内容挂载到更新对象中的 payload 中
+  // 将要更新的组件存储在 payload 对象中，方便后期获取
+  update.payload = { element };
 
   callback = callback === undefined ? null : callback;
   if (callback !== null) {
@@ -285,15 +323,27 @@ export function updateContainer(
       if (typeof callback !== 'function') {
         console.error(
           'render(...): Expected the last optional `callback` argument to be a ' +
-            'function. Instead received: %s.',
+          'function. Instead received: %s.',
           callback,
         );
       }
     }
+
+    /**
+     * 将 callback 挂载到 update 对象中
+     * 其实就是一层层传递，方便 ReactElement 元素渲染完成调用
+     * 回调函数执行完成后会被清除，可以在代码的后面加上 return 进行验证
+     */
     update.callback = callback;
   }
 
+  /**
+   * 将 update 对象加入到当前 Fiber 的更新队列当中（updateQueue）
+   * 将执行的任务都会被存储在 fiber.updateQueue.shared.pending 中
+   */
   enqueueUpdate(current, update);
+
+  // 调度和更新 current 对象
   scheduleWork(current, expirationTime);
 
   return expirationTime;
@@ -313,13 +363,21 @@ export {
   IsThisRendererActing,
 };
 
+/**
+ * 获取 container 的第一个子元素的实例对象
+ * @param {*} container fiberRoot
+ * @returns 
+ */
 export function getPublicRootInstance(
   container: OpaqueRoot,
 ): React$Component<any, any> | PublicInstance | null {
+  // 获取 rootFiber
   const containerFiber = container.current;
+
   if (!containerFiber.child) {
     return null;
   }
+
   switch (containerFiber.child.tag) {
     case HostComponent:
       return getPublicInstance(containerFiber.child.stateNode);
@@ -405,9 +463,9 @@ export function attemptHydrationAtCurrentPriority(fiber: Fiber): void {
   markRetryTimeIfNotHydrated(fiber, expTime);
 }
 
-export {findHostInstance};
+export { findHostInstance };
 
-export {findHostInstanceWithWarning};
+export { findHostInstanceWithWarning };
 
 export function findHostInstanceWithNoPortals(
   fiber: Fiber,
@@ -444,7 +502,7 @@ if (__DEV__) {
       return value;
     }
     const key = path[idx];
-    const updated = Array.isArray(obj) ? obj.slice() : {...obj};
+    const updated = Array.isArray(obj) ? obj.slice() : { ...obj };
     // $FlowFixMe number or string is fine here
     updated[key] = copyWithSetImpl(obj[key], path, idx + 1, value);
     return updated;
@@ -482,7 +540,7 @@ if (__DEV__) {
       // (There's no appropriate action type for DevTools overrides.)
       // As a result though, React will see the scheduled update as a noop and bailout.
       // Shallow cloning props works as a workaround for now to bypass the bailout check.
-      fiber.memoizedProps = {...fiber.memoizedProps};
+      fiber.memoizedProps = { ...fiber.memoizedProps };
 
       scheduleWork(fiber, Sync);
     }
@@ -507,8 +565,8 @@ if (__DEV__) {
 }
 
 export function injectIntoDevTools(devToolsConfig: DevToolsConfig): boolean {
-  const {findFiberByHostInstance} = devToolsConfig;
-  const {ReactCurrentDispatcher} = ReactSharedInternals;
+  const { findFiberByHostInstance } = devToolsConfig;
+  const { ReactCurrentDispatcher } = ReactSharedInternals;
 
   return injectInternals({
     ...devToolsConfig,
@@ -541,12 +599,12 @@ export function injectIntoDevTools(devToolsConfig: DevToolsConfig): boolean {
   });
 }
 
-const {IsSomeRendererActing} = ReactSharedInternals;
+const { IsSomeRendererActing } = ReactSharedInternals;
 const isSchedulerMocked =
   typeof Scheduler.unstable_flushAllWithoutAsserting === 'function';
 const flushWork =
   Scheduler.unstable_flushAllWithoutAsserting ||
-  function() {
+  function () {
     let didFlushWork = false;
     while (flushPassiveEffects()) {
       didFlushWork = true;
@@ -606,7 +664,7 @@ export function act(callback: () => Thenable) {
         // if it's _less than_ previousActingUpdatesScopeDepth, then we can assume the 'other' one has warned
         console.error(
           'You seem to have overlapping act() calls, this is not supported. ' +
-            'Be sure to await previous act() calls before making a new one. ',
+          'Be sure to await previous act() calls before making a new one. ',
         );
       }
     }
@@ -633,13 +691,13 @@ export function act(callback: () => Thenable) {
       if (typeof Promise !== 'undefined') {
         //eslint-disable-next-line no-undef
         Promise.resolve()
-          .then(() => {})
+          .then(() => { })
           .then(() => {
             if (called === false) {
               console.error(
                 'You called act(async () => ...) without await. ' +
-                  'This could lead to unexpected testing behaviour, interleaving multiple act ' +
-                  'calls and mixing their scopes. You should - await act(async () => ...);',
+                'This could lead to unexpected testing behaviour, interleaving multiple act ' +
+                'calls and mixing their scopes. You should - await act(async () => ...);',
               );
             }
           });
@@ -686,7 +744,7 @@ export function act(callback: () => Thenable) {
       if (result !== undefined) {
         console.error(
           'The callback passed to act(...) function ' +
-            'must return undefined, or a Promise. You returned %s',
+          'must return undefined, or a Promise. You returned %s',
           result,
         );
       }

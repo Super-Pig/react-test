@@ -58,6 +58,10 @@ function ReactDOMBlockingRoot(
   tag: RootTag,
   options: void | RootOptions,
 ) {
+  // tag => 0 => legacyRoot
+  // container => <div id='root'></div>
+  // container._reactRootContainer = {_internalRoot: {}}
+
   this._internalRoot = createRootImpl(container, tag, options);
 }
 
@@ -113,11 +117,21 @@ function createRootImpl(
   options: void | RootOptions,
 ) {
   // Tag is either LegacyRoot or Concurrent Root
+  // container => <div id='root'></div>
+  // tag => 0
+  // options => undefined
+  // 检测是否为服务端渲染 false
   const hydrate = options != null && options.hydrate === true;
+
+  // 服务端渲染相关 null
   const hydrationCallbacks =
     (options != null && options.hydrationOptions) || null;
+
   const root = createContainer(container, tag, hydrate, hydrationCallbacks);
+  
   markContainerAsRoot(root.current, container);
+  
+  // 服务端渲染相关
   if (hydrate && tag !== LegacyRoot) {
     const doc =
       container.nodeType === DOCUMENT_NODE
@@ -152,10 +166,19 @@ export function createBlockingRoot(
   return new ReactDOMBlockingRoot(container, BlockingRoot, options);
 }
 
+/**
+ * 通过实例化 ReactDOMBlockingRoot 类创建 LegacyRoot
+ * @param {*} container 
+ * @param {*} options 
+ * @returns 
+ */
 export function createLegacyRoot(
   container: Container,
   options?: RootOptions,
 ): RootType {
+  // container => <div id='root'></div>
+  // LegacyRoot 常量，值为 0
+  // 通过 render 方法创建的 container 就是 LegacyRoot
   return new ReactDOMBlockingRoot(container, LegacyRoot, options);
 }
 

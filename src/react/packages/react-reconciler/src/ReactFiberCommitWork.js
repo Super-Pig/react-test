@@ -15,16 +15,16 @@ import type {
   ChildSet,
   UpdatePayload,
 } from './ReactFiberHostConfig';
-import type {Fiber} from './ReactFiber';
-import type {FiberRoot} from './ReactFiberRoot';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {CapturedValue, CapturedError} from './ReactCapturedValue';
-import type {SuspenseState} from './ReactFiberSuspenseComponent';
-import type {FunctionComponentUpdateQueue} from './ReactFiberHooks';
-import type {Thenable} from './ReactFiberWorkLoop';
-import type {ReactPriorityLevel} from './SchedulerWithReactIntegration';
+import type { Fiber } from './ReactFiber';
+import type { FiberRoot } from './ReactFiberRoot';
+import type { ExpirationTime } from './ReactFiberExpirationTime';
+import type { CapturedValue, CapturedError } from './ReactCapturedValue';
+import type { SuspenseState } from './ReactFiberSuspenseComponent';
+import type { FunctionComponentUpdateQueue } from './ReactFiberHooks';
+import type { Thenable } from './ReactFiberWorkLoop';
+import type { ReactPriorityLevel } from './SchedulerWithReactIntegration';
 
-import {unstable_wrap as Schedule_tracing_wrap} from 'scheduler/tracing';
+import { unstable_wrap as Schedule_tracing_wrap } from 'scheduler/tracing';
 import {
   deferPassiveEffectCleanupDuringUnmount,
   enableSchedulerTracing,
@@ -71,13 +71,13 @@ import {
 import getComponentName from 'shared/getComponentName';
 import invariant from 'shared/invariant';
 
-import {onCommitUnmount} from './ReactFiberDevToolsHook';
-import {startPhaseTimer, stopPhaseTimer} from './ReactDebugFiberPerf';
-import {getStackByFiberInDevAndProd} from './ReactCurrentFiber';
-import {logCapturedError} from './ReactFiberErrorLogger';
-import {resolveDefaultProps} from './ReactFiberLazyComponent';
-import {getCommitTime} from './ReactProfilerTimer';
-import {commitUpdateQueue} from './ReactUpdateQueue';
+import { onCommitUnmount } from './ReactFiberDevToolsHook';
+import { startPhaseTimer, stopPhaseTimer } from './ReactDebugFiberPerf';
+import { getStackByFiberInDevAndProd } from './ReactCurrentFiber';
+import { logCapturedError } from './ReactFiberErrorLogger';
+import { resolveDefaultProps } from './ReactFiberLazyComponent';
+import { getCommitTime } from './ReactProfilerTimer';
+import { commitUpdateQueue } from './ReactUpdateQueue';
 import {
   getPublicInstance,
   supportsMutation,
@@ -120,8 +120,8 @@ import {
   Layout as HookLayout,
   Passive as HookPassive,
 } from './ReactHookEffectTags';
-import {didWarnAboutReassigningProps} from './ReactFiberBeginWork';
-import {runWithPriority, NormalPriority} from './SchedulerWithReactIntegration';
+import { didWarnAboutReassigningProps } from './ReactFiberBeginWork';
+import { runWithPriority, NormalPriority } from './SchedulerWithReactIntegration';
 import {
   updateDeprecatedEventListeners,
   unmountDeprecatedResponderListeners,
@@ -171,7 +171,7 @@ export function logError(boundary: Fiber, errorInfo: CapturedValue<mixed>) {
   }
 }
 
-const callComponentWillUnmountWithTimer = function(current, instance) {
+const callComponentWillUnmountWithTimer = function (current, instance) {
   startPhaseTimer(current, 'componentWillUnmount');
   instance.props = current.memoizedProps;
   instance.state = current.memoizedState;
@@ -255,9 +255,14 @@ function commitBeforeMutationLifeCycles(
     case ClassComponent: {
       if (finishedWork.effectTag & Snapshot) {
         if (current !== null) {
+          // 旧的 props
           const prevProps = current.memoizedProps;
+
+          // 旧的 state
           const prevState = current.memoizedState;
           startPhaseTimer(finishedWork, 'getSnapshotBeforeUpdate');
+
+          // 获取 classComponent 组件的实例对象
           const instance = finishedWork.stateNode;
           // We could update instance props and state here,
           // but instead we rely on them being set during last render.
@@ -270,25 +275,31 @@ function commitBeforeMutationLifeCycles(
               if (instance.props !== finishedWork.memoizedProps) {
                 console.error(
                   'Expected %s props to match memoized props before ' +
-                    'getSnapshotBeforeUpdate. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.props`. ' +
-                    'Please file an issue.',
+                  'getSnapshotBeforeUpdate. ' +
+                  'This might either be because of a bug in React, or because ' +
+                  'a component reassigns its own `this.props`. ' +
+                  'Please file an issue.',
                   getComponentName(finishedWork.type) || 'instance',
                 );
               }
               if (instance.state !== finishedWork.memoizedState) {
                 console.error(
                   'Expected %s state to match memoized state before ' +
-                    'getSnapshotBeforeUpdate. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.props`. ' +
-                    'Please file an issue.',
+                  'getSnapshotBeforeUpdate. ' +
+                  'This might either be because of a bug in React, or because ' +
+                  'a component reassigns its own `this.props`. ' +
+                  'Please file an issue.',
                   getComponentName(finishedWork.type) || 'instance',
                 );
               }
             }
           }
+
+          /**
+           * 执行 getSnapshotBeforeUpdate 生命周期函数
+           * 在组件更新前捕获一些 DOM 信息
+           * 返回自定义的值或 null，统称为 snapshot
+           */
           const snapshot = instance.getSnapshotBeforeUpdate(
             finishedWork.elementType === finishedWork.type
               ? prevProps
@@ -301,11 +312,13 @@ function commitBeforeMutationLifeCycles(
               didWarnSet.add(finishedWork.type);
               console.error(
                 '%s.getSnapshotBeforeUpdate(): A snapshot value (or null) ' +
-                  'must be returned. You have returned undefined.',
+                'must be returned. You have returned undefined.',
                 getComponentName(finishedWork.type),
               );
             }
           }
+
+          // 将 snapshot 赋值到 __reactInternalSnapshotBeforeUpdate 属性
           instance.__reactInternalSnapshotBeforeUpdate = snapshot;
           stopPhaseTimer();
         }
@@ -323,7 +336,7 @@ function commitBeforeMutationLifeCycles(
   invariant(
     false,
     'This unit of work tag should not have side-effects. This error is ' +
-      'likely caused by a bug in React. Please file an issue.',
+    'likely caused by a bug in React. Please file an issue.',
   );
 }
 
@@ -347,16 +360,36 @@ function commitHookEffectListUnmount(tag: number, finishedWork: Fiber) {
   }
 }
 
+/**
+ * useEffect 回调函数调用
+ * @param {*} tag 
+ * @param {*} finishedWork 
+ */
 function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
+  // 获取任务队列
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
+  
+  // 获取 lastEffect
   let lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
+ 
   if (lastEffect !== null) {
+    // 获取要执行的副作用
     const firstEffect = lastEffect.next;
     let effect = firstEffect;
+
+    /**
+     * 通过遍历方式调用 useEffect 中的回调函数
+     * 在组件中定义了调用了几次 useEffect 遍历就会执行几次
+     */
     do {
       if ((effect.tag & tag) === tag) {
         // Mount
         const create = effect.create;
+
+        /**
+         * create 就是 useEffect 方法的第一个参数
+         * 返回值就是清理函数
+         */
         effect.destroy = create();
 
         if (__DEV__) {
@@ -386,7 +419,7 @@ function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
             }
             console.error(
               'An effect function must not return anything besides a function, ' +
-                'which is used for clean-up.%s%s',
+              'which is used for clean-up.%s%s',
               addendum,
               getStackByFiberInDevAndProd(finishedWork),
             );
@@ -406,7 +439,7 @@ function schedulePassiveEffects(finishedWork: Fiber) {
       const firstEffect = lastEffect.next;
       let effect = firstEffect;
       do {
-        const {next, tag} = effect;
+        const { next, tag } = effect;
         if (
           (tag & HookPassive) !== NoHookEffect &&
           (tag & HookHasEffect) !== NoHookEffect
@@ -463,8 +496,12 @@ function commitLifeCycles(
       return;
     }
     case ClassComponent: {
+      // 获取类组件实例对象
       const instance = finishedWork.stateNode;
+
+      // 如果在类组件中存在生命周期函数
       if (finishedWork.effectTag & Update) {
+        // 初始渲染阶段
         if (current === null) {
           startPhaseTimer(finishedWork, 'componentDidMount');
           // We could update instance props and state here,
@@ -478,34 +515,42 @@ function commitLifeCycles(
               if (instance.props !== finishedWork.memoizedProps) {
                 console.error(
                   'Expected %s props to match memoized props before ' +
-                    'componentDidMount. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.props`. ' +
-                    'Please file an issue.',
+                  'componentDidMount. ' +
+                  'This might either be because of a bug in React, or because ' +
+                  'a component reassigns its own `this.props`. ' +
+                  'Please file an issue.',
                   getComponentName(finishedWork.type) || 'instance',
                 );
               }
               if (instance.state !== finishedWork.memoizedState) {
                 console.error(
                   'Expected %s state to match memoized state before ' +
-                    'componentDidMount. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.props`. ' +
-                    'Please file an issue.',
+                  'componentDidMount. ' +
+                  'This might either be because of a bug in React, or because ' +
+                  'a component reassigns its own `this.props`. ' +
+                  'Please file an issue.',
                   getComponentName(finishedWork.type) || 'instance',
                 );
               }
             }
           }
+
+          // 调用 componentDidMount 生命周期函数
           instance.componentDidMount();
           stopPhaseTimer();
         } else {
+          // 更新阶段
+          // 获取旧的 props
           const prevProps =
             finishedWork.elementType === finishedWork.type
               ? current.memoizedProps
               : resolveDefaultProps(finishedWork.type, current.memoizedProps);
+
+          // 获取旧的 state
           const prevState = current.memoizedState;
+         
           startPhaseTimer(finishedWork, 'componentDidUpdate');
+        
           // We could update instance props and state here,
           // but instead we rely on them being set during last render.
           // TODO: revisit this when we implement resuming.
@@ -517,25 +562,31 @@ function commitLifeCycles(
               if (instance.props !== finishedWork.memoizedProps) {
                 console.error(
                   'Expected %s props to match memoized props before ' +
-                    'componentDidUpdate. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.props`. ' +
-                    'Please file an issue.',
+                  'componentDidUpdate. ' +
+                  'This might either be because of a bug in React, or because ' +
+                  'a component reassigns its own `this.props`. ' +
+                  'Please file an issue.',
                   getComponentName(finishedWork.type) || 'instance',
                 );
               }
               if (instance.state !== finishedWork.memoizedState) {
                 console.error(
                   'Expected %s state to match memoized state before ' +
-                    'componentDidUpdate. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.props`. ' +
-                    'Please file an issue.',
+                  'componentDidUpdate. ' +
+                  'This might either be because of a bug in React, or because ' +
+                  'a component reassigns its own `this.props`. ' +
+                  'Please file an issue.',
                   getComponentName(finishedWork.type) || 'instance',
                 );
               }
             }
           }
+
+          /**
+           * 调用 componentDidUpdate 生命周期函数
+           * instance.__reactInternalSnapshotBeforeUpdate 快照
+           * getSnapShotBeforeUpdate 方法的返回值
+           */
           instance.componentDidUpdate(
             prevProps,
             prevState,
@@ -544,7 +595,10 @@ function commitLifeCycles(
           stopPhaseTimer();
         }
       }
+
+      // 获取任务队列
       const updateQueue = finishedWork.updateQueue;
+
       if (updateQueue !== null) {
         if (__DEV__) {
           if (
@@ -554,20 +608,20 @@ function commitLifeCycles(
             if (instance.props !== finishedWork.memoizedProps) {
               console.error(
                 'Expected %s props to match memoized props before ' +
-                  'processing the update queue. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
+                'processing the update queue. ' +
+                'This might either be because of a bug in React, or because ' +
+                'a component reassigns its own `this.props`. ' +
+                'Please file an issue.',
                 getComponentName(finishedWork.type) || 'instance',
               );
             }
             if (instance.state !== finishedWork.memoizedState) {
               console.error(
                 'Expected %s state to match memoized state before ' +
-                  'processing the update queue. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
+                'processing the update queue. ' +
+                'This might either be because of a bug in React, or because ' +
+                'a component reassigns its own `this.props`. ' +
+                'Please file an issue.',
                 getComponentName(finishedWork.type) || 'instance',
               );
             }
@@ -576,6 +630,10 @@ function commitLifeCycles(
         // We could update instance props and state here,
         // but instead we rely on them being set during last render.
         // TODO: revisit this when we implement resuming.
+        /**
+         * 调用 ReactElement 渲染完成之后的回调函数
+         * 即 render 方法的第三个参数
+         */
         commitUpdateQueue(finishedWork, updateQueue, instance);
       }
       return;
@@ -663,7 +721,7 @@ function commitLifeCycles(
   invariant(
     false,
     'This unit of work tag should not have side-effects. This error is ' +
-      'likely caused by a bug in React. Please file an issue.',
+    'likely caused by a bug in React. Please file an issue.',
   );
 }
 
@@ -741,7 +799,7 @@ function commitAttachRef(finishedWork: Fiber) {
         if (!ref.hasOwnProperty('current')) {
           console.error(
             'Unexpected ref object provided for %s. ' +
-              'Use either a ref-setter function or React.createRef().%s',
+            'Use either a ref-setter function or React.createRef().%s',
             getComponentName(finishedWork.type),
             getStackByFiberInDevAndProd(finishedWork),
           );
@@ -792,7 +850,7 @@ function commitUnmount(
           ) {
             let effect = firstEffect;
             do {
-              const {destroy, tag} = effect;
+              const { destroy, tag } = effect;
               if (destroy !== undefined) {
                 if ((tag & HookPassive) !== NoHookEffect) {
                   enqueuePendingPassiveHookEffectUnmount(current, effect);
@@ -966,10 +1024,10 @@ function emptyPortalContainer(current: Fiber) {
     containerInfo: Container,
     pendingChildren: ChildSet,
     ...
-  } = current.stateNode;
-  const {containerInfo} = portal;
-  const emptyChildSet = createContainerChildSet(containerInfo);
-  replaceContainerChildren(containerInfo, emptyChildSet);
+} = current.stateNode;
+const { containerInfo } = portal;
+const emptyChildSet = createContainerChildSet(containerInfo);
+replaceContainerChildren(containerInfo, emptyChildSet);
 }
 
 function commitContainer(finishedWork: Fiber) {
@@ -990,22 +1048,28 @@ function commitContainer(finishedWork: Fiber) {
         containerInfo: Container,
         pendingChildren: ChildSet,
         ...
-      } = finishedWork.stateNode;
-      const {containerInfo, pendingChildren} = portalOrRoot;
+    } = finishedWork.stateNode;
+      const { containerInfo, pendingChildren } = portalOrRoot;
       replaceContainerChildren(containerInfo, pendingChildren);
       return;
-    }
   }
-  invariant(
-    false,
-    'This unit of work tag should not have side-effects. This error is ' +
-      'likely caused by a bug in React. Please file an issue.',
-  );
+}
+invariant(
+  false,
+  'This unit of work tag should not have side-effects. This error is ' +
+  'likely caused by a bug in React. Please file an issue.',
+);
 }
 
+/**
+ * 获取 HostRootFiber 对象
+ * @param {*} fiber 
+ * @returns 
+ */
 function getHostParentFiber(fiber: Fiber): Fiber {
   let parent = fiber.return;
   while (parent !== null) {
+    // 查看父级是否为 hostRoot
     if (isHostParent(parent)) {
       return parent;
     }
@@ -1014,7 +1078,7 @@ function getHostParentFiber(fiber: Fiber): Fiber {
   invariant(
     false,
     'Expected to find a host parent. This error is likely caused by a bug ' +
-      'in React. Please file an issue.',
+    'in React. Please file an issue.',
   );
 }
 
@@ -1072,18 +1136,43 @@ function getHostSibling(fiber: Fiber): ?Instance {
   }
 }
 
+/**
+ * 挂载 DOM 元素
+ * @param {*} finishedWork 初始化渲染时为根组件 Fiber 对象
+ * @returns 
+ */
 function commitPlacement(finishedWork: Fiber): void {
   if (!supportsMutation) {
     return;
   }
 
   // Recursively insert all host nodes into the parent.
+  /**
+   * 获取非组件父级 Fiber 对象
+   * 初始渲染为 <div id='root'></div>
+   */
   const parentFiber = getHostParentFiber(finishedWork);
 
   // Note: these two variables *must* always be updated together.
+  // 存储真正的父级 DOM 对象
   let parent;
+
+  /**
+   * 是否为渲染容器
+   * 渲染容器和普通 react 元素的主要区别在于是否需要特殊处理注释节点
+   */
   let isContainer;
+
+  /**
+   * 获取父级 DOM 节点对象
+   * 但是初始渲染时 rootFiber 对象中的 stateNode 存储的是 FiberRoot
+   */
   const parentStateNode = parentFiber.stateNode;
+
+  /**
+   * 判断父节点的类型
+   * 初始渲染时是 hostRoot 3
+   */
   switch (parentFiber.tag) {
     case HostComponent:
       parent = parentStateNode;
@@ -1094,6 +1183,10 @@ function commitPlacement(finishedWork: Fiber): void {
       isContainer = true;
       break;
     case HostPortal:
+      /**
+       * 获取真正的 DOM 节点对象
+       * <div id='root'></div>
+       */
       parent = parentStateNode.containerInfo;
       isContainer = true;
       break;
@@ -1107,7 +1200,7 @@ function commitPlacement(finishedWork: Fiber): void {
       invariant(
         false,
         'Invalid host parent fiber. This error is likely caused by a bug ' +
-          'in React. Please file an issue.',
+        'in React. Please file an issue.',
       );
   }
   if (parentFiber.effectTag & ContentReset) {
@@ -1117,25 +1210,51 @@ function commitPlacement(finishedWork: Fiber): void {
     parentFiber.effectTag &= ~ContentReset;
   }
 
+  /**
+   * 查看当前节点是否有下一个兄弟节点
+   * 有，执行 insertBefore
+   * 没有，执行 appendChild
+   */
   const before = getHostSibling(finishedWork);
+
   // We only have the top Fiber that was inserted but we need to recurse down its
   // children to find all the terminal nodes.
+  // 渲染容器
   if (isContainer) {
+    // 向父节点追加子节点，或者将子节点插入到 before 节点前面
     insertOrAppendPlacementNodeIntoContainer(finishedWork, before, parent);
   } else {
+    /**
+     * 非渲染容器
+     * 向父节点中追加节点，或者将子节点插入到 before 节点前面
+     */
     insertOrAppendPlacementNode(finishedWork, before, parent);
   }
 }
 
+/**
+ * 向容器中追加 or 插入到某一个节点的前面
+ * @param {*} node 
+ * @param {*} before 
+ * @param {*} parent 
+ */
 function insertOrAppendPlacementNodeIntoContainer(
   node: Fiber,
   before: ?Instance,
   parent: Container,
 ): void {
-  const {tag} = node;
+  const { tag } = node;
+
+  /**
+   * 如果待插入的节点是一个 DOM 元素或者文本的话
+   * 比如: 组件 fiber=> fase div=>true
+   */
   const isHost = tag === HostComponent || tag === HostText;
+
   if (isHost || (enableFundamentalAPI && tag === FundamentalComponent)) {
+    // 获取 DOM 节点
     const stateNode = isHost ? node.stateNode : node.stateNode.instance;
+
     if (before) {
       insertInContainerBefore(parent, stateNode, before);
     } else {
@@ -1146,6 +1265,10 @@ function insertOrAppendPlacementNodeIntoContainer(
     // down its children. Instead, we'll get insertions from each child in
     // the portal directly.
   } else {
+    /**
+     * 如果是组件节点，比如 classComponent，则找它的第一个子节点（DOM 元素）
+     * 进行插入操作
+     */
     const child = node.child;
     if (child !== null) {
       insertOrAppendPlacementNodeIntoContainer(child, before, parent);
@@ -1163,7 +1286,7 @@ function insertOrAppendPlacementNode(
   before: ?Instance,
   parent: Instance,
 ): void {
-  const {tag} = node;
+  const { tag } = node;
   const isHost = tag === HostComponent || tag === HostText;
   if (isHost || (enableFundamentalAPI && tag === FundamentalComponent)) {
     const stateNode = isHost ? node.stateNode : node.stateNode.instance;
@@ -1213,7 +1336,7 @@ function unmountHostComponents(
         invariant(
           parent !== null,
           'Expected to find a host parent. This error is likely caused by ' +
-            'a bug in React. Please file an issue.',
+          'a bug in React. Please file an issue.',
         );
         const parentStateNode = parent.stateNode;
         switch (parent.tag) {
@@ -1452,7 +1575,7 @@ function commitWork(current: Fiber | null, finishedWork: Fiber): void {
       invariant(
         finishedWork.stateNode !== null,
         'This should have a text node initialized. This error is likely ' +
-          'caused by a bug in React. Please file an issue.',
+        'caused by a bug in React. Please file an issue.',
       );
       const textInstance: TextInstance = finishedWork.stateNode;
       const newText: string = finishedWork.memoizedProps;
@@ -1519,7 +1642,7 @@ function commitWork(current: Fiber | null, finishedWork: Fiber): void {
   invariant(
     false,
     'This unit of work tag should not have side-effects. This error is ' +
-      'likely caused by a bug in React. Please file an issue.',
+    'likely caused by a bug in React. Please file an issue.',
   );
 }
 

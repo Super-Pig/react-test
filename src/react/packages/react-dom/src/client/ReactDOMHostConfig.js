@@ -464,9 +464,12 @@ export function insertInContainerBefore(
   child: Instance | TextInstance,
   beforeChild: Instance | TextInstance | SuspenseInstance,
 ): void {
+  // 如果 container 是注释节点
   if (container.nodeType === COMMENT_NODE) {
+    // 找到注释节点的父级节点，因为注释节点没法调用 insertBefore
     (container.parentNode: any).insertBefore(child, beforeChild);
   } else {
+    // 将 child 插入到 beforeChild 的前面
     container.insertBefore(child, beforeChild);
   }
 }

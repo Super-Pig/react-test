@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {Fiber} from './ReactFiber';
+import {Fiber} from './ReactFiber';
 import type {ExpirationTime} from './ReactFiberExpirationTime';
 import type {RootTag} from 'shared/ReactRootTags';
 import type {TimeoutHandle, NoTimeout} from './ReactFiberHostConfig';
@@ -134,23 +134,37 @@ function FiberRootNode(containerInfo, tag, hydrate) {
   }
 }
 
+// 创建根节点 fiber 对象
 export function createFiberRoot(
   containerInfo: any,
   tag: RootTag,
   hydrate: boolean,
   hydrationCallbacks: null | SuspenseHydrationCallbacks,
 ): FiberRoot {
+  // 创建 FiberRoot
   const root: FiberRoot = (new FiberRootNode(containerInfo, tag, hydrate): any);
+
+  // false
   if (enableSuspenseCallback) {
     root.hydrationCallbacks = hydrationCallbacks;
   }
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+  // 创建根节点对应的 rootFiber
   const uninitializedFiber = createHostRootFiber(tag);
+ 
+  // 为 fiberRoot 添加 current 属性，值为 rootFiber
   root.current = uninitializedFiber;
+
+  // 为 rootFiber 添加 stateNode 属性，值为 fiberRoot
   uninitializedFiber.stateNode = root;
 
+  /**
+   * 为 fiber 对象添加 updateQueue 属性，初始化 updateQueue 对象
+   * updateQueue 用于存放 Update 对象
+   * Update 对象用于记录组件状态的改变
+   */
   initializeUpdateQueue(uninitializedFiber);
 
   return root;

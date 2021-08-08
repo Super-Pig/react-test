@@ -9,6 +9,9 @@
 
 export type RootTag = 0 | 1 | 2;
 
+// ReactDOM.render
 export const LegacyRoot = 0;
+// ReactDOM.createBlockingRoot
 export const BlockingRoot = 1;
+// ReactDOM.createRoot
 export const ConcurrentRoot = 2;

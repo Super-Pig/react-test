@@ -401,8 +401,17 @@ export function resolveLazyComponentTag(Component: Function): WorkTag {
 }
 
 // This is used to create an alternate fiber to do work on.
+/**
+ * 构建 workInProgress Fiber 树中的 rootFiber
+ * 构建完成会替换 current fiber
+ * 初始渲染 pendingProps 为 null
+ * @param {*} current current Fiber 中的 rootFiber
+ * @param {*} pendingProps 
+ * @returns 
+ */
 export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
   let workInProgress = current.alternate;
+
   if (workInProgress === null) {
     // We use a double buffering pooling technique because we know that we'll
     // only ever need at most two versions of a tree. We pool the "other" unused

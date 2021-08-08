@@ -22,6 +22,12 @@
 
   - [区分 fiberRoot 与 rootFiber](#区分fiberRoot与rootFiber)
 
+[初始化渲染](#初始化渲染)
+
+  - [Render阶段](#Render阶段)
+
+  - [Commit阶段](#Commit阶段)
+
 # 搭建React源码本地调试环境
 
 1. 使用 create-react-app 脚手架创建项目
@@ -320,3 +326,21 @@ rootFiber 指向 fiberRoot, 在 rootFiber 对象中有一个 stateNode 属性，
 在 React 应用中 fiberRoot 只有一个，而 rootFiber 可以有多个，因为 render 方法是可以调用多次的 
 
 fiberRoot 会记录饮用中的更新信息，比如协调器在完成工作后，会将工作成果存储在 fiberRoot 中
+
+# 初始化渲染
+
+## Render阶段
+
+### render
+
+文件位置：packages/react-dom/src/client/ReactDOMLegacy.js
+
+## Commit阶段
+
+commit 阶段可以分为三个子阶段：
+
+- before mutation 阶段（执行 DOM 操作前）
+- mutation 阶段（执行 DOM 操作）
+- layout 阶段（执行 DOM 操作后）
+
+文件位置：packages/react-reconciler/src/ReactFiberWorkLoop.js

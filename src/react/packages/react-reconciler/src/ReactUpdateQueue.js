@@ -153,6 +153,7 @@ if (__DEV__) {
 
 export function initializeUpdateQueue<State>(fiber: Fiber): void {
   const queue: UpdateQueue<State> = {
+    // 上一次更新之后的 state，作为下一次更新的基础
     baseState: fiber.memoizedState,
     baseQueue: null,
     shared: {
@@ -202,15 +203,26 @@ export function createUpdate(
   return update;
 }
 
+/**
+ * 将任务（update）存放于队列（updateQueue）中
+ * 创建单向链表结构存放 update，next 用来串联 update
+ * @param {*} fiber 
+ * @param {*} update 
+ * @returns 
+ */
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   const updateQueue = fiber.updateQueue;
   if (updateQueue === null) {
     // Only occurs if the fiber has been unmounted.
+    // 仅发生在 fiber 已被卸载
     return;
   }
 
+  // 获取待执行的 Update 任务
+  // 初始渲染时没有待执行的任务
   const sharedQueue = updateQueue.shared;
   const pending = sharedQueue.pending;
+  
   if (pending === null) {
     // This is the first update. Create a circular list.
     update.next = update;
@@ -524,14 +536,23 @@ export function checkHasForceUpdateAfterProcessing(): boolean {
   return hasForceUpdate;
 }
 
+// 执行渲染完成之后的回调函数
 export function commitUpdateQueue<State>(
   finishedWork: Fiber,
   finishedQueue: UpdateQueue<State>,
   instance: any,
 ): void {
   // Commit the effects
+  /**
+   * effects 为数组，存储任务对象（Update 对象）
+   * 但前提是调用 render 方法时传递了回调函数，就是 render 方法的第三个参数
+   */
   const effects = finishedQueue.effects;
+
+  // 重置 finishedQueue.effects 数组
   finishedQueue.effects = null;
+
+  // 如果传递了 render 方法的第三个参数，effect 数组就不会为 null
   if (effects !== null) {
     for (let i = 0; i < effects.length; i++) {
       const effect = effects[i];

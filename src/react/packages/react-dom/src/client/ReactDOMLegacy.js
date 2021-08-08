@@ -110,6 +110,12 @@ function shouldHydrateDueToLegacyHeuristic(container) {
   );
 }
 
+/**
+ * 判断是否为服务端渲染，如果不是服务端渲染，清空 container 容器中的节点
+ * @param {*} container 
+ * @param {*} forceHydrate 
+ * @returns 
+ */
 function legacyCreateRootFromDOMContainer(
   container: Container,
   forceHydrate: boolean,
@@ -120,6 +126,7 @@ function legacyCreateRootFromDOMContainer(
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
+
     while ((rootSibling = container.lastChild)) {
       if (__DEV__) {
         if (
@@ -136,6 +143,21 @@ function legacyCreateRootFromDOMContainer(
         }
       }
       container.removeChild(rootSibling);
+      /**
+       * 为什么要清除 container 中的元素？
+       * 有时候需要在 container 放置一些占位图或者 loading 图以提高首屏加载用户体验
+       * 就无可避免的要向 container 中加入 html 标记
+       * 在将 ReactElement 渲染到 container 之前，必然要先清空 container
+       * 因为占位图和 ReactElement 不能同时显示
+       * 
+       * 在加入占位代码时，最好只有一个父级元素，可以减少内部代码的循环次数以提高性能
+       * 
+       * <div>
+       *  <p>placement</p>
+       *  <p>placement</p>
+       *  <p>placement</p>
+       * </div>
+       */
     }
   }
   if (__DEV__) {
@@ -172,6 +194,15 @@ function warnOnInvalidCallback(callback: mixed, callerName: string): void {
   }
 }
 
+/**
+ * 将子树渲染到容器中（初始化 Fiber 数据结构：创建 fiberRoot 及 rootFiber）
+ * @param {*} parentComponent 父组件，初始渲染传入了 null
+ * @param {*} children render 方法中的第一个参数，要渲染的 ReactElement
+ * @param {*} container 渲染容器 
+ * @param {*} forceHydrate true 为服务端渲染；false 为客户端渲染
+ * @param {*} callback 组件渲染完成后需要执行的回调函数
+ * @returns 
+ */
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
@@ -186,23 +217,54 @@ function legacyRenderSubtreeIntoContainer(
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
+  /**
+   * 监测 container 是否已经是初始化过的渲染容器
+   * react 在初始渲染时会为最外层容器添加 _reactRootContainer 属性
+   * react 会根据此属性进行不同的渲染方式
+   * root 不存在，表示初始渲染
+   * root 存在，表示更新
+   */
   let root: RootType = (container._reactRootContainer: any);
   let fiberRoot;
   if (!root) {
     // Initial mount
+    /**
+     * 初始渲染
+     * 初始化根 Fiber 数据结构
+     * 为 container 容器添加 _reactRootContainer 属性
+     * 在 _reactRootContainer 对象中有一个属性叫做  _internalRoot
+     * _internalRoot 属性值即为 FiberRoot，表示根节点的 Fiber 数据结构
+     * legacyCreateRootFromDOMContainer
+     * createLegacyRoot
+     * new ReactDOMBlockingRoot -> this._internalRoot
+     * createRootImpl
+     */
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
     );
+
     fiberRoot = root._internalRoot;
+
+    /**
+     * 改变 callback 函数中的 this 指向
+     * 使其指向 render 方法第一个参数的真实 DOM 对象
+     */
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function() {
+        // 获取 render 方法第一个参数的真实 DOM 对象
+        // 实际上就是 id='root' 的 div 的子元素
+        // rootFiber.child.stateNode
+        // rootFiber 就是 id='root' 的 div
         const instance = getPublicRootInstance(fiberRoot);
+
         originalCallback.call(instance);
       };
     }
     // Initial mount should not be batched.
+    // 初始化渲染不执行批量更新
+    // 因为批量更新是异步的可以被打断的，但是初始化渲染应该尽快完成不能被打断
     unbatchedUpdates(() => {
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
@@ -218,6 +280,9 @@ function legacyRenderSubtreeIntoContainer(
     // Update
     updateContainer(children, fiberRoot, parentComponent, callback);
   }
+
+  // 返回 render 方法第一个参数的真实 DOM 对象作为 render 方法的返回值
+  // 就是说渲染谁，返回谁的真实 DOM 对象
   return getPublicRootInstance(fiberRoot);
 }
 
@@ -284,11 +349,21 @@ export function hydrate(
   );
 }
 
+/**
+ * 渲染入口
+ * @param {*} element 要进行渲染的 ReactElement, createElement 方法的返回值
+ * @param {*} container 渲染容器 <div id='root'></div>
+ * @param {*} callback 渲染完成后执行的回调函数
+ * @returns 
+ */
 export function render(
   element: React$Element<any>,
   container: Container,
   callback: ?Function,
 ) {
+  // 监测 container 是否是符合要求的渲染容器
+  // 即监测 container 是否是真实的 DOM 对象
+  // 如果不符合要求就报错
   invariant(
     isValidContainer(container),
     'Target container is not a DOM element.',
@@ -305,10 +380,13 @@ export function render(
       );
     }
   }
+  
   return legacyRenderSubtreeIntoContainer(
+    // 父组件，初始化渲染没有父组件，传递 null 占位
     null,
     element,
     container,
+    // 是否为服务器端渲染
     false,
     callback,
   );

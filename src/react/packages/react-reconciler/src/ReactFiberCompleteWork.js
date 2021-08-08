@@ -150,6 +150,7 @@ let updateHostText;
 if (supportsMutation) {
   // Mutation mode
 
+  // 将所有子级追加到父级中
   appendAllChildren = function(
     parent: Instance,
     workInProgress: Fiber,
@@ -158,9 +159,13 @@ if (supportsMutation) {
   ) {
     // We only have the top Fiber that was created but we need recurse down its
     // children to find all the terminal nodes.
+    // 获取子级
     let node = workInProgress.child;
+  
     while (node !== null) {
+      // 如果 node 是普通 reactElement 或者为文本
       if (node.tag === HostComponent || node.tag === HostText) {
+        // 将子级追加到父级中
         appendInitialChild(parent, node.stateNode);
       } else if (enableFundamentalAPI && node.tag === FundamentalComponent) {
         appendInitialChild(parent, node.stateNode.instance);
@@ -173,16 +178,32 @@ if (supportsMutation) {
         node = node.child;
         continue;
       }
+
+      /**
+       * 如果 node 和 workInProgress 是同一个节点
+       * 说明 node 已经退回到父级，终止循环
+       * 说明此时所有子级都已经追加到父级中了
+       */
       if (node === workInProgress) {
         return;
       }
+
+      // 处理子级节点的兄弟节点
       while (node.sibling === null) {
+        /**
+         * 如果节点没有父级或者节点的父级是自己，退出循环
+         * 说明此时所有的子级都追加到父级中了
+         */
         if (node.return === null || node.return === workInProgress) {
           return;
         }
         node = node.return;
       }
+
+      // 更新父级，方便回退
       node.sibling.return = node.return;
+
+      // 将 node 更新为下一个兄弟节点
       node = node.sibling;
     }
   };
@@ -638,6 +659,7 @@ function completeWork(
   workInProgress: Fiber,
   renderExpirationTime: ExpirationTime,
 ): Fiber | null {
+  // 获取待更新 props
   const newProps = workInProgress.pendingProps;
 
   switch (workInProgress.tag) {
@@ -746,6 +768,7 @@ function completeWork(
             }
           }
         } else {
+          // 创建节点示例对象 <div></div> <span></span>
           let instance = createInstance(
             type,
             newProps,
@@ -754,11 +777,19 @@ function completeWork(
             workInProgress,
           );
 
+          /**
+           * 将所有的子级追加到父级中
+           * instance 为父级
+           * workInProgress.child 为子级
+           */
           appendAllChildren(instance, workInProgress, false, false);
 
           // This needs to be set before we mount Flare event listeners
           workInProgress.stateNode = instance;
 
+          /**
+           * 初始渲染不执行
+           */
           if (enableDeprecatedFlareAPI) {
             const listeners = newProps.DEPRECATED_flareListeners;
             if (listeners != null) {
