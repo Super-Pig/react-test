@@ -24,7 +24,7 @@ import './App.css';
 // }
 
 function App() {
-  return <div>Garry</div>
+  return <h1>Garry</h1>
 }
 
 export default App;

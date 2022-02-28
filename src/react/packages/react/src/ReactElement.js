@@ -32,6 +32,7 @@ function hasValidRef(config) {
   if (__DEV__) {
     if (hasOwnProperty.call(config, 'ref')) {
       const getter = Object.getOwnPropertyDescriptor(config, 'ref').get;
+
       if (getter && getter.isReactWarning) {
         return false;
       }
@@ -67,7 +68,9 @@ function defineKeyPropWarningGetter(props, displayName) {
       }
     }
   };
+
   warnAboutAccessingKey.isReactWarning = true;
+  
   Object.defineProperty(props, 'key', {
     get: warnAboutAccessingKey,
     configurable: true,
@@ -89,7 +92,9 @@ function defineRefPropWarningGetter(props, displayName) {
       }
     }
   };
+
   warnAboutAccessingRef.isReactWarning = true;
+  
   Object.defineProperty(props, 'ref', {
     get: warnAboutAccessingRef,
     configurable: true,
@@ -339,7 +344,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
       defineRefPropWarningGetter(props, displayName);
     }
   }
-
+  
   return ReactElement(
     type,
     key,
@@ -407,27 +412,32 @@ export function createElement(type, config, children) {
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
   // 将第三个及之后的参数挂载到 props.children 属性中
-  // 如果子元素是多个 props.children 是数组
-  // 如果子元素是一个 props.children 是对象
+  // 如果子元素是多个，props.children 是数组
+  // 如果子元素是一个，props.children 是对象
   const childrenLength = arguments.length - 2;
+  
   if (childrenLength === 1) {
     props.children = children;
   } else if (childrenLength > 1) {
     const childArray = Array(childrenLength);
+    
     for (let i = 0; i < childrenLength; i++) {
       childArray[i] = arguments[i + 2];
     }
+
     if (__DEV__) {
       if (Object.freeze) {
         Object.freeze(childArray);
       }
     }
+
     props.children = childArray;
   }
 
   // Resolve default props
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
+  
     for (propName in defaultProps) {
       if (props[propName] === undefined) {
         props[propName] = defaultProps[propName];
@@ -470,6 +480,7 @@ export function createElement(type, config, children) {
       }
     }
   }
+
   return ReactElement(
     type,
     key,
