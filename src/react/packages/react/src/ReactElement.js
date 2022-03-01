@@ -389,15 +389,22 @@ export function createElement(type, config, children) {
       ref = config.ref;
 
       if (__DEV__) {
+        /**
+         * 在开发环境中
+         * 如果 ref 属性的值被设置成了字符串形式就报一个显示
+         * 说明此方法在将来的版本中会被删除
+         */
         warnIfStringRefCannotBeAutoConverted(config);
       }
     }
+
     if (hasValidKey(config)) {
       key = '' + config.key;
     }
 
     self = config.__self === undefined ? null : config.__self;
     source = config.__source === undefined ? null : config.__source;
+  
     // Remaining properties are added to a new props object
     for (propName in config) {
       if (
@@ -603,6 +610,8 @@ export function cloneElement(element, config, children) {
  * @param {?object} object
  * @return {boolean} True if `object` is a ReactElement.
  * @final
+ * 
+ * 验证 object 参数是否是 ReactElement. 
  */
 export function isValidElement(object) {
   return (
