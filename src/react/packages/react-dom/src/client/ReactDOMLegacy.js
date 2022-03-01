@@ -361,13 +361,14 @@ export function render(
   container: Container,
   callback: ?Function,
 ) {
-  // 监测 container 是否是符合要求的渲染容器
+  // 检测 container 是否是符合要求的渲染容器
   // 即监测 container 是否是真实的 DOM 对象
   // 如果不符合要求就报错
   invariant(
     isValidContainer(container),
     'Target container is not a DOM element.',
   );
+
   if (__DEV__) {
     const isModernRoot =
       isContainerMarkedAsRoot(container) &&

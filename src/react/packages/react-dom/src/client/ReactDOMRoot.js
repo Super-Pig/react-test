@@ -61,7 +61,7 @@ function ReactDOMBlockingRoot(
   // tag => 0 => legacyRoot
   // container => <div id='root'></div>
   // container._reactRootContainer = {_internalRoot: {}}
-
+  
   this._internalRoot = createRootImpl(container, tag, options);
 }
 
@@ -182,6 +182,17 @@ export function createLegacyRoot(
   return new ReactDOMBlockingRoot(container, LegacyRoot, options);
 }
 
+/**
+ * 判断 node 是否是符合要求的 DOM 节点
+ * @param {*} node 
+ * @returns 
+ * 
+ * 1. node 可以是元素节点
+ * 2. node 可以是 document 节点
+ * 3. node 可以是文档碎片节点
+ * 4. node 可以是注释节点，但注释内容必须是 react-mount-point-unstable
+ *    react 内部会找到注释节点的父级，通过调用父级元素的 insertBefore 方法将 element 插入到注释节点的前面
+ */
 export function isValidContainer(node: mixed): boolean {
   return !!(
     node &&
