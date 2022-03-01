@@ -127,6 +127,7 @@ function legacyCreateRootFromDOMContainer(
     let warned = false;
     let rootSibling;
 
+    // 删除 container 容器中的节点
     while ((rootSibling = container.lastChild)) {
       if (__DEV__) {
         if (
@@ -226,6 +227,7 @@ function legacyRenderSubtreeIntoContainer(
    */
   let root: RootType = (container._reactRootContainer: any);
   let fiberRoot;
+  
   if (!root) {
     // Initial mount
     /**
@@ -252,6 +254,7 @@ function legacyRenderSubtreeIntoContainer(
      */
     if (typeof callback === 'function') {
       const originalCallback = callback;
+
       callback = function() {
         // 获取 render 方法第一个参数的真实 DOM 对象
         // 实际上就是 id='root' 的 div 的子元素
@@ -381,7 +384,7 @@ export function render(
       );
     }
   }
-  
+
   return legacyRenderSubtreeIntoContainer(
     // 父组件，初始化渲染没有父组件，传递 null 占位
     null,
