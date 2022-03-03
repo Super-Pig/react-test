@@ -265,6 +265,7 @@ function legacyRenderSubtreeIntoContainer(
         originalCallback.call(instance);
       };
     }
+
     // Initial mount should not be batched.
     // 初始化渲染不执行批量更新
     // 因为批量更新是异步的可以被打断的，但是初始化渲染应该尽快完成不能被打断

@@ -394,15 +394,20 @@ export function scheduleUpdateOnFiber(
    */
   checkForNestedUpdates();
 
+  // 开发环境下执行的
   warnAboutRenderPhaseUpdatesInDEV(fiber);
 
+  // 遍历更新子节点的过期时间，返回 FiberRoot
   const root = markUpdateTimeFromFiberToRoot(fiber, expirationTime);
   if (root === null) {
     warnAboutUpdateOnUnmountedFiberInDEV(fiber);
     return;
   }
 
+  // 判断是否有高优先级任务打断当前正在执行的任务
   checkForInterruption(fiber, expirationTime);
+
+  // 报告调度更新，测试环境下执行
   recordScheduleUpdate();
 
   // TODO: computeExpirationForFiber also reads the priority. Pass the
@@ -412,6 +417,8 @@ export function scheduleUpdateOnFiber(
   // 数值越大，优先级越高
   const priorityLevel = getCurrentPriorityLevel();
 
+  // 判断任务是否是同步任务
+  // Sync = 1073741823
   if (expirationTime === Sync) {
     if (
       // Check if we're inside unbatchedUpdates
@@ -431,7 +438,6 @@ export function scheduleUpdateOnFiber(
       // root inside of batchedUpdates should be synchronous, but layout updates
       // should be deferred until the end of the batch.
       // 同步任务入口点
-
       performSyncWorkOnRoot(root);
     } else {
       ensureRootIsScheduled(root);
@@ -1327,7 +1333,7 @@ function prepareFreshStack(root, expirationTime) {
     cancelTimeout(timeoutHandle);
   }
 
-  // 初始化渲染不执行 workInProgress 全局变量，初始化为 0
+  // 初始化渲染不执行 workInProgress 全局变量，初始化为 null
   if (workInProgress !== null) {
     let interruptedWork = workInProgress.return;
     while (interruptedWork !== null) {
@@ -1579,6 +1585,7 @@ function performUnitOfWork(unitOfWork: Fiber): Fiber | null {
   setCurrentDebugFiberInDEV(unitOfWork);
 
   let next;
+
   if (enableProfilerTimer && (unitOfWork.mode & ProfileMode) !== NoMode) {
     startProfilerTimer(unitOfWork);
 

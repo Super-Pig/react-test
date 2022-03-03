@@ -83,17 +83,23 @@ export const now =
 
 export function getCurrentPriorityLevel(): ReactPriorityLevel {
   switch (Scheduler_getCurrentPriorityLevel()) {
-    case Scheduler_ImmediatePriority:
+    // 99 立即执行的任务
+    case Scheduler_ImmediatePriority: 
       return ImmediatePriority;
-    case Scheduler_UserBlockingPriority:
+    // 98 用户交互的任务
+    case Scheduler_UserBlockingPriority:  
       return UserBlockingPriority;
-    case Scheduler_NormalPriority:
+    // 97 普通优先级
+    case Scheduler_NormalPriority:  
       return NormalPriority;
-    case Scheduler_LowPriority:
+    //96 低优先级任务
+    case Scheduler_LowPriority: 
       return LowPriority;
-    case Scheduler_IdlePriority:
+    // 95 闲时任务
+    case Scheduler_IdlePriority:  
       return IdlePriority;
     default:
+      // 缺少优先级
       invariant(false, 'Unknown priority level.');
   }
 }

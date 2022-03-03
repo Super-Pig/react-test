@@ -212,6 +212,7 @@ export function createUpdate(
  */
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   const updateQueue = fiber.updateQueue;
+
   if (updateQueue === null) {
     // Only occurs if the fiber has been unmounted.
     // 仅发生在 fiber 已被卸载
@@ -230,6 +231,7 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
     update.next = pending.next;
     pending.next = update;
   }
+  
   sharedQueue.pending = update;
 
   if (__DEV__) {

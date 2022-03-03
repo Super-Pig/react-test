@@ -768,7 +768,7 @@ function completeWork(
             }
           }
         } else {
-          // 创建节点示例对象 <div></div> <span></span>
+          // 创建节点实例对象 <div></div> <span></span>
           let instance = createInstance(
             type,
             newProps,

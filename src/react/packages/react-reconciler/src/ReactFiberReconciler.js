@@ -318,6 +318,7 @@ export function updateContainer(
   update.payload = { element };
 
   callback = callback === undefined ? null : callback;
+ 
   if (callback !== null) {
     if (__DEV__) {
       if (typeof callback !== 'function') {

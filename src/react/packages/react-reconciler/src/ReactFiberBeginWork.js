@@ -212,8 +212,8 @@ if (__DEV__) {
 /**
  * 构建子级 fiber 对象
  * @param {*} current 旧 Fiber
- * @param {*} workInProgress // 父级 Fiber
- * @param {*} nextChildren // 子级 vdom 对象
+ * @param {*} workInProgress  父级 Fiber
+ * @param {*} nextChildren  子级 vdom 对象
  * @param {*} renderExpirationTime 初始渲染，整型最大值，代表同步任务
  */
 export function reconcileChildren(
@@ -3158,6 +3158,10 @@ function beginWork(
    * 文件位置： shared/ReactWorkTags.js
    */
   switch (workInProgress.tag) {
+    /**
+     * IndeterminateComponent = 2
+     * 函数组件在第一次被渲染时使用
+     */
     case IndeterminateComponent: {
       return mountIndeterminateComponent(
         current,
@@ -3166,6 +3170,9 @@ function beginWork(
         renderExpirationTime,
       );
     }
+    /**
+     * LazyComponent = 16
+     */
     case LazyComponent: {
       const elementType = workInProgress.elementType;
       return mountLazyComponent(
@@ -3176,6 +3183,9 @@ function beginWork(
         renderExpirationTime,
       );
     }
+    /**
+     * FunctionComponent = 0
+     */
     case FunctionComponent: {
       const Component = workInProgress.type;
       const unresolvedProps = workInProgress.pendingProps;
@@ -3191,6 +3201,9 @@ function beginWork(
         renderExpirationTime,
       );
     }
+    /**
+     * ClassComponent = 1
+     */
     case ClassComponent: {
       const Component = workInProgress.type;
       const unresolvedProps = workInProgress.pendingProps;
@@ -3206,12 +3219,24 @@ function beginWork(
         renderExpirationTime,
       );
     }
+    /**
+     * HostRoot = 3
+     */
     case HostRoot:
       return updateHostRoot(current, workInProgress, renderExpirationTime);
+    /**
+     * HostComponent = 5
+     */
     case HostComponent:
       return updateHostComponent(current, workInProgress, renderExpirationTime);
+    /**
+     * HostText = 6
+     */
     case HostText:
       return updateHostText(current, workInProgress);
+    /**
+     * SuspenseComponent = 13
+     */
     case SuspenseComponent:
       return updateSuspenseComponent(
         current,
