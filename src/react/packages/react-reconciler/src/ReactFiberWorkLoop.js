@@ -1649,14 +1649,16 @@ function completeUnitOfWork(unitOfWork: Fiber): Fiber | null {
         !enableProfilerTimer ||
         (workInProgress.mode & ProfileMode) === NoMode
       ) {
+        next = completeWork(current, workInProgress, renderExpirationTime);
+      } else {
+        startProfilerTimer(workInProgress);
+
         /**
          * 重点代码（二）
          * 创建节点真实 DOM 对象并将其添加到 stateNode 属性中
          */
         next = completeWork(current, workInProgress, renderExpirationTime);
-      } else {
-        startProfilerTimer(workInProgress);
-        next = completeWork(current, workInProgress, renderExpirationTime);
+        
         // Update render duration assuming we didn't error.
         stopProfilerTimerIfRunningAndRecordDelta(workInProgress, false);
       }
