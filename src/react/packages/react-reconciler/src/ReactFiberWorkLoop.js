@@ -2213,7 +2213,12 @@ function commitRootImpl(root, renderPriorityLevel) {
   return null;
 }
 
+/**
+ * commit 阶段的第一个子阶段
+ * 调用类组件的 getSnapshotBeforeUpdate 生命周期函数
+ */
 function commitBeforeMutationEffects() {
+  // 循环 effect 链
   while (nextEffect !== null) {
     /**
     * nextEffect 是 effect 链上从 firstEffect 到 lastEffect 的每一个需要 commit 的 fiber 对象
@@ -2222,6 +2227,7 @@ function commitBeforeMutationEffects() {
     */
     const effectTag = nextEffect.effectTag;
 
+    // Snapshot 和更新有关系，初始化渲染不执行
     if ((effectTag & Snapshot) !== NoEffect) {
       // 开发环境执行 忽略
       setCurrentDebugFiberInDEV(nextEffect);
