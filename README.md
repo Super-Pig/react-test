@@ -340,7 +340,10 @@ fiberRoot 会记录饮用中的更新信息，比如协调器在完成工作后�
 commit 阶段可以分为三个子阶段：
 
 - before mutation 阶段（执行 DOM 操作前）
+  - 处理类组件的 getSnapshotBeforeUpdate（更新阶段执行）
 - mutation 阶段（执行 DOM 操作）
 - layout 阶段（执行 DOM 操作后）
+  - 类组件的生命周期函数 (componentDidMount, componentDidUpdate, componentWillUnmount)
+  - 函数组件处理钩子函数
 
 文件位置：packages/react-reconciler/src/ReactFiberWorkLoop.js

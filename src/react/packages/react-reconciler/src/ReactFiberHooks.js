@@ -343,12 +343,22 @@ function areHookInputsEqual(
   return true;
 }
 
+/**
+ * function 组件初始化
+ * @param {*} current 
+ * @param {*} workInProgress 
+ * @param {*} Component 
+ * @param {*} props 
+ * @param {*} secondArg 
+ * @param {*} nextRenderExpirationTime 
+ * @returns 
+ */
 export function renderWithHooks(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  Component: any,
-  props: any,
-  secondArg: any,
+  current: Fiber | null,    
+  workInProgress: Fiber,   
+  Component: any,          
+  props: any,              
+  secondArg: any,           
   nextRenderExpirationTime: ExpirationTime,
 ): any {
   renderExpirationTime = nextRenderExpirationTime;

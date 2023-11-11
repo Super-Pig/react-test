@@ -1,39 +1,21 @@
-import * as React from 'react'
-import logo from './logo.svg';
-import './App.css';
+/*
+ * Copyright © 2020-2023 Ocean Galaxy Inc. All Rights Reserved.
+ * @Description:
+ * @LastEditors: garry彭
+ * @LastEditTime: 2023-11-06 10:14:52
+ */
+import * as React from "react";
+import logo from "./logo.svg";
+import "./App.css";
 
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
+class App extends React.Component {
+  componentDidMount() {
+    console.log("componentDidMount");
+  }
 
-function App() {
-  return <div>
-    <p>
-      <span>123</span>
-    </p>
-    <div>
-      <p>
-        <span>abc</span>
-      </p>
-    </div>
-  </div>
+  render() {
+    return <div>123</div>;
+  }
 }
 
 export default App;
